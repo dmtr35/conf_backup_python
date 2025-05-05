@@ -1,0 +1,24 @@
+{
+  "config_paths": [
+    "/etc/network/interfaces",
+    "/etc/netplan/",
+    "/etc/systemd/",
+
+    "~/.vimrc",
+    "~/.bashrc",
+    "~/.profile",
+    "~/.ssh/",
+
+    "/etc/ssh/sshd_config",
+    "/etc/iptables/",
+    "/etc/nftables.conf",
+
+    "/etc/hosts",
+    "/etc/fstab",
+    "/etc/resolv.conf",
+
+    "/etc/cron.d/",
+    "/etc/systemd/",
+    "/etc/sudoers"
+  ]
+}
