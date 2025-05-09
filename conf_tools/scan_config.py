@@ -4,9 +4,10 @@ import shutil
 import json
 import tarfile
 from datetime import datetime
+import fnmatch
 
-
-
+def check_listignore(path_file, ignore_patterns):
+    return any(fnmatch.fnmatch(path_file, pattern) for pattern in ignore_patterns) or os.path.islink(path_file)
 
 def scan_config(paths: list):
     now = datetime.now()
@@ -16,6 +17,13 @@ def scan_config(paths: list):
     os.makedirs(tmp_folder, exist_ok=True)
 
     host_name = save_system_info(tmp_folder)
+    
+    listignore = os.path.join(os.getcwd(), ".listignore")
+    if os.path.isfile(listignore):
+        with open(listignore, 'r') as f:                                         # Загружаем конфигурацию из файла
+            ignore_patterns = [line.strip() for line in f if line.strip()]
+    else:
+        ignore_patterns = []
 
     metadata = {}
     for src_path in paths:
@@ -25,23 +33,34 @@ def scan_config(paths: list):
             for dirpath, dirnames, filenames in os.walk(src_path):
                 rel_path = os.path.relpath(dirpath, src_path)
                 dest_path = os.path.join(dest_base, rel_path)
+
+                if check_listignore(dirpath, ignore_patterns):              # проверка папки на ignore_patterns
+                    continue
+
+                if not dest_path.endswith("/.") and not os.path.isdir(os.path.dirname(dest_path)):
+                    continue
                 os.makedirs(dest_path, exist_ok=True)
 
                 # Сохраняем метаданные для директорий
                 for dir in dirnames:
                     src_dir = os.path.join(dirpath, dir)
+                    if check_listignore(src_dir, ignore_patterns):          # проверка папки на ignore_patterns
+                        continue
                     collect_metadata(src_dir, metadata)
 
                 # Копируем файлы
                 for filename in filenames:
                     src_file = os.path.join(dirpath, filename)
-                    if not os.path.isfile(src_file):
+                    if check_listignore(src_file, ignore_patterns):         # проверка файла на ignore_patterns
                         continue
+
                     collect_metadata(src_file, metadata)
                     dest_file = os.path.join(dest_path, filename)
                     shutil.copy2(src_file, dest_file)
         else:
             if os.path.isfile(src_path):
+                if check_listignore(src_path, ignore_patterns):             # проверка файла на ignore_patterns
+                    continue
                 collect_metadata(src_path, metadata)
                 shutil.copy2(src_path, dest_base)
 
@@ -52,7 +71,7 @@ def scan_config(paths: list):
     backup_file_path = os.path.join(".", f"{folder_name}_{host_name}.tar.gz")
 
     with tarfile.open(backup_file_path, "w:gz") as tar:
-        tar.add(tmp_folder, arcname=folder_name)
+        tar.add(tmp_folder, arcname=".")
 
     shutil.rmtree(tmp_folder)
 

@@ -9,17 +9,20 @@ import sys
 
 
 def main():
+    args = sys.argv[1:]
+
     home_dir = check_user_home()
     paths = change_home(home_dir)
 
-    if len(sys.argv) == 1:
+    if len(args) == 0:
         exists_conf = [path for path in paths if os.path.exists(path)]
-        print(exists_conf)
-        print("\n")
+        # print(exists_conf)
+        # print("\n")
         scan_config(exists_conf)
+    elif len(args) == 1:
+        restor_config(args[0])   
     else:
-        restor_config(paths)   
-
+        print()
 
 
 
