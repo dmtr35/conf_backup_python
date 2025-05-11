@@ -16,8 +16,6 @@ def main():
 
     if len(args) == 0:
         exists_conf = [path for path in paths if os.path.exists(path)]
-        # print(exists_conf)
-        # print("\n")
         scan_config(exists_conf)
     elif len(args) == 1:
         restor_config(args[0])   
