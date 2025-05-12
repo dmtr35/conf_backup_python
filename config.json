@@ -1,6 +1,24 @@
 {
   "config_paths": [
-    "/home/dm/test/folder/interfaces",
-    "/home/dm/test/folder/.ssh"
+    "/etc/network/interfaces",
+    "/etc/netplan",
+    "/ect/systemd/network",
+
+    "/home/dm/.vimrc",
+    "/home/dm/.bashrc",
+    "/home/dm/.profile",
+    
+    "/root/.bashrc",
+    "/root/.profile",
+    "/etc/sudoers",
+
+    "/etc/hosts",
+    "/etc/resolv.conf",
+
+    "/etc/fstab",
+    "/etc/crontab"
   ]
 }
+
+
+

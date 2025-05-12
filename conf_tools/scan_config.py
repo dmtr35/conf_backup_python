@@ -1,6 +1,6 @@
 from setting.set_data import save_system_info, collect_metadata
+from setting.decor_permission import copy, rmtree
 import os
-import shutil
 import json
 import tarfile
 from datetime import datetime
@@ -11,13 +11,14 @@ def check_listignore(path_file, ignore_patterns):
 
 def change_folder_name(arr_folder_names, replace_path):
     if len(arr_folder_names) == 1:
-        return arr_folder_names[0] + replace_path
+        return replace_path
     else:
         new_path = "" 
         for i in range(len(arr_folder_names) - 1, -1, -1):
-            new_path = arr_folder_names[i] + replace_path + "/" + new_path
-            replace_path = replace_path.rsplit("*", 1)[0] + ")"
+            new_path = replace_path + "/" + new_path
+            replace_path = replace_path.rsplit("*", 1)[0]
         return new_path.rstrip('/')
+
 
 def scan_config(paths: list):
     now = datetime.now()
@@ -37,14 +38,14 @@ def scan_config(paths: list):
 
     metadata = {}
     for src_path in paths:
-        replace_path = "(" + src_path.replace('/', '*') + ")"
-        dest_base = os.path.join(tmp_folder, os.path.basename(src_path)) + replace_path
+        replace_path = src_path.replace('/', '*')
+        dest_base = os.path.join(tmp_folder, replace_path)
         if os.path.isdir(src_path):
             collect_metadata(src_path, metadata)
             for dirpath, dirnames, filenames in os.walk(src_path):
-                replace_path = "(" + dirpath.replace('/', '*') + ")"
+                replace_path = dirpath.replace('/', '*')
                 rel_path = os.path.relpath(dirpath, src_path)
-                
+
                 if not rel_path == ".":
                     rel_path = change_folder_name(rel_path.split('/'), replace_path)
                 dest_path = os.path.join(dest_base, rel_path)
@@ -66,19 +67,19 @@ def scan_config(paths: list):
                 # Копируем файлы
                 for filename in filenames:
                     src_file = os.path.join(dirpath, filename)
-                    replace_path = "(" + src_file.replace('/', '*') + ")"
+                    replace_path = src_file.replace('/', '*')
                     if check_listignore(src_file, ignore_patterns):         # проверка файла на ignore_patterns
                         continue
 
                     collect_metadata(src_file, metadata)
-                    dest_file = os.path.join(dest_path, filename) + replace_path
-                    shutil.copy2(src_file, dest_file)
+                    dest_file = os.path.join(dest_path, replace_path)
+                    copy(src_file, dest_file)
         else:
             if os.path.isfile(src_path):
                 if check_listignore(src_path, ignore_patterns):             # проверка файла на ignore_patterns
                     continue
                 collect_metadata(src_path, metadata)
-                shutil.copy2(src_path, dest_base)
+                copy(src_path, dest_base)
 
     with open(metadata_file, 'w') as f:
         json.dump(metadata, f, indent=4)
@@ -89,5 +90,6 @@ def scan_config(paths: list):
     with tarfile.open(backup_file_path, "w:gz") as tar:
         tar.add(tmp_folder, arcname=".")
 
-    shutil.rmtree(tmp_folder)
+    rmtree(tmp_folder)
+    # shutil.rmtree(tmp_folder)
 
