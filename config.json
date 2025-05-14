@@ -2,7 +2,7 @@
   "config_paths": [
     "/etc/network/interfaces",
     "/etc/netplan",
-    "/ect/systemd/network",
+    "/etc/systemd/network",
 
     "/home/dm/.vimrc",
     "/home/dm/.bashrc",
@@ -17,6 +17,10 @@
 
     "/etc/fstab",
     "/etc/crontab"
+  ],
+  "listignore": [
+    "*~",
+    ".*~"
   ]
 }
 

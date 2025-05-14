@@ -20,22 +20,21 @@ def change_folder_name(arr_folder_names, replace_path):
         return new_path.rstrip('/')
 
 
-def scan_config(paths: list):
+def scan_config(config_path):
     now = datetime.now()
     date_string = now.strftime("_%d.%m.%Y_%H-%M")
     tmp_folder = "/tmp/conf_backup" + date_string
     metadata_file = os.path.join(tmp_folder, "metadata.json")
     os.makedirs(tmp_folder, exist_ok=True)
 
+    with open(config_path, 'r') as f:                                 # Загружаем конфигурацию из файла
+        config = json.load(f)
+    config_paths = [os.path.expanduser(os.path.expandvars(p)) for p in config['config_paths']]
+    ignore_patterns = [os.path.expanduser(os.path.expandvars(p)) for p in config['listignore']]
+    paths = [path for path in config_paths if os.path.exists(path)]
+
     host_name = save_system_info(tmp_folder)
     
-    listignore = os.path.join(os.getcwd(), ".listignore")
-    if os.path.isfile(listignore):
-        with open(listignore, 'r') as f:                                         # Загружаем конфигурацию из файла
-            ignore_patterns = [line.strip() for line in f if line.strip()]
-    else:
-        ignore_patterns = []
-
     metadata = {}
     for src_path in paths:
         replace_path = src_path.replace('/', '*')
