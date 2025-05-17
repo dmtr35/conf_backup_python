@@ -1,26 +1,14 @@
 {
   "config_paths": [
-    "/etc/network/interfaces",
-    "/etc/netplan",
-    "/etc/systemd/network",
-
-    "/home/dm/.vimrc",
-    "/home/dm/.bashrc",
-    "/home/dm/.profile",
-    
-    "/root/.bashrc",
-    "/root/.profile",
-    "/etc/sudoers",
-
-    "/etc/hosts",
-    "/etc/resolv.conf",
-
-    "/etc/fstab",
-    "/etc/crontab"
+    "/home/dm/test/folder/.ssh",
+    "/home/dm/test/folder/interfaces"
   ],
   "listignore": [
     "*~",
-    ".*~"
+    ".*~",
+    "*.bak"
+  ],
+  "restore_list": [
   ]
 }
 

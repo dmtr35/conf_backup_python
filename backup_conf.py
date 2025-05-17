@@ -1,23 +1,33 @@
 #!/usr/bin/python3.12
-from tools.restor_config import restor_config
+from tools.restore_config import restore_config
 from tools.scan_config import scan_config
 import os
 import sys
-
-    
 
 
 def main():
     args = sys.argv[1:]
     script_dir = os.path.dirname(os.path.realpath(__file__))
     config_path = os.path.join(script_dir, "config.json")
+    save_original = 0
+
+    if "-h" in args or "--help" in args:
+        print("""
+./ConfBackup                        - делать backup файлов из списка config.json[config_paths]
+./ConfBackup -s file-backup         - сохранять оригинальные файлы с приставкой .bak перед восстановлением
+./ConfBackup file-backup            - если config.json[restore_list] не пустой, делать восстановление из этого списка
+""")
+        return
+    
+    if "-s" in args:
+        args.remove("-s")
+        save_original = 1
+
 
     if len(args) == 0:
         scan_config(config_path)
-    elif len(args) == 1:
-        restor_config(args[0])   
     else:
-        print()
+        restore_config(args[0], config_path, save_original)   
 
 if __name__ == "__main__":
     main()

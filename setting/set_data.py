@@ -33,4 +33,6 @@ def collect_metadata(path, metadata):
             'mode': oct(stat_info.st_mode)
         }
 
+def collect_restore_list(name, restore_list):
+    restore_list.append(name)
 
