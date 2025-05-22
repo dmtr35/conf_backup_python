@@ -1,7 +1,6 @@
 import os
 import platform
 import sys
-import json
 from datetime import datetime
 
 def get_system_info():

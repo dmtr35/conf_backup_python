@@ -71,3 +71,4 @@ def restore_config(recovery_file, config_path, save_original):
     restore_dirs(tmp_folder, bool_res_list, restore_list, metadata_file, save_original)
 
     rmtree(tmp_folder)
+    

@@ -1,4 +1,3 @@
-#!/usr/bin/python3.12
 from tools.restore_config import restore_config
 from tools.scan_config import scan_config
 import os
@@ -25,7 +24,7 @@ def main():
 
 
     if len(args) == 0:
-        scan_config(config_path)
+        scan_config(config_path, script_dir)
     else:
         restore_config(args[0], config_path, save_original)   
 

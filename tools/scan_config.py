@@ -1,5 +1,6 @@
 from setting.set_data import save_system_info, collect_metadata, collect_restore_list
 from setting.decor_permission import copy, rmtree
+from setting.check_backup import check_change_config
 import os
 import json
 import tarfile
@@ -21,7 +22,7 @@ def change_folder_name(arr_folder_names, replace_path):
         return new_path.rstrip('/')
 
 
-def scan_config(config_path):
+def scan_config(config_path, script_dir):
     now = datetime.now()
     date_string = now.strftime("_%d.%m.%Y")
     tmp_folder = "/tmp/conf_backup" + date_string
@@ -96,11 +97,22 @@ def scan_config(config_path):
     with open(restore_list_file, 'w') as f:
         json.dump(restore_list, f, indent=4)
 
+    olds_backups = [os.path.join(script_dir, backup) for backup in os.listdir(script_dir) if backup.endswith(".tar.gz")]
+
+    if olds_backups:
+        old_backup = max(olds_backups, key=lambda f: os.stat(f).st_mtime)
+        ignored_files = ["system_info.txt"]
+        if check_change_config(tmp_folder, old_backup, ignore=ignored_files):
+            rmtree(tmp_folder)
+            print("=== No changes in configuration files ===")
+            return 
+
     folder_name = os.path.basename(tmp_folder)
-    backup_file_path = os.path.join(".", f"{folder_name}_{host_name}.tar.gz")
+    backup_file_path = os.path.join(script_dir, f"{folder_name}_{host_name}.tar.gz")
 
     with tarfile.open(backup_file_path, "w:gz") as tar:
         tar.add(tmp_folder, arcname=".")
+    print(f"=== Backup file '{os.path.basename(backup_file_path)}' created ===")
 
     rmtree(tmp_folder)
 
