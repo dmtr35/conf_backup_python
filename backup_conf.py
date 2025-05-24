@@ -1,10 +1,13 @@
 from tools.restore_config import restore_config
 from tools.scan_config import scan_config
+from setting.check_permission import check_permission
 import os
 import sys
 
 
 def main():
+    check_permission()
+
     args = sys.argv[1:]
     script_dir = os.path.dirname(os.path.realpath(__file__))
     config_path = os.path.join(script_dir, "config.json")
