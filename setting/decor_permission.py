@@ -2,8 +2,6 @@ import os
 import shutil
 
 
-
-
 def decor_permission(fun):
     def wrapper(*args):
         try:
