@@ -1,0 +1,7 @@
+.vscode
+__pycache__
+conf_tools/__pycache__
+setting/__pycache__
+conf_backup_*
+*~
+test-ignore
