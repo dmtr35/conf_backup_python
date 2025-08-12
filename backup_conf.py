@@ -1,7 +1,7 @@
 from tools.restore_config import restore_config
 from tools.scan_config import scan_config
 from setting.check_permission import check_permission
-import os
+from pathlib import Path
 import sys
 
 
@@ -9,8 +9,8 @@ def main():
     check_permission()
 
     args = sys.argv[1:]
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    config_path = os.path.join(script_dir, "config.json")
+    script_dir = Path(__file__).resolve().parent
+    config_path = script_dir / "config.json"
     save_original = 0
 
     if "-h" in args or "--help" in args:

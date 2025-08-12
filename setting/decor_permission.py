@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import shutil
 
 
@@ -21,10 +22,11 @@ def rmtree(tmp_folder):
 
 @decor_permission
 def restor_metadata(path, metadata_files):
-    metadata = metadata_files[path]
+    p = Path(path)
+    metadata = metadata_files[str(p)]
     mode = int(metadata["mode"], 8)
     uid = int(metadata["uid"])
     gid = int(metadata["gid"])
     
-    os.chmod(path, mode)
-    os.chown(path, uid, gid)
+    p.chmod(mode) 
+    os.chown(p, uid, gid)

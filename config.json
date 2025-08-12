@@ -1,6 +1,6 @@
 {
   "config_paths": [
-    "/home/dm/test/folder/.ssh"
+    "homedmtestfolder"
   ],
   "listignore": [
     "*~",
@@ -8,7 +8,6 @@
     "*.bak"
   ],
   "restore_list": [
-    ""
   ]
 }
 

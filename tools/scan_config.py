@@ -1,14 +1,12 @@
-from setting.set_data import save_system_info, collect_metadata, collect_restore_list
+from setting.set_data import get_system_info, save_system_info, collect_metadata, collect_restore_list
 from setting.decor_permission import copy, rmtree
-from setting.check_backup import check_change_config
+from pathlib import Path
 import os
 import json
-import tarfile
-from datetime import datetime
 import fnmatch
 
 def check_listignore(path_file, ignore_patterns):
-    return any(fnmatch.fnmatch(path_file, pattern) for pattern in ignore_patterns) or os.path.islink(path_file)
+    return any(fnmatch.fnmatch(path_file, pattern) for pattern in ignore_patterns) or path_file.is_symlink()
 
 
 def change_folder_name(arr_folder_names, replace_path):
@@ -23,96 +21,82 @@ def change_folder_name(arr_folder_names, replace_path):
 
 
 def scan_config(config_path, script_dir):
-    now = datetime.now()
-    date_string = now.strftime("_%d.%m.%Y")
-    tmp_folder = "/tmp/conf_backup" + date_string
-    metadata_file = os.path.join(tmp_folder, "metadata.json")
-    restore_list_file = os.path.join(tmp_folder, "restore_list.json")
-    os.makedirs(tmp_folder, exist_ok=True)
+    info = get_system_info()
+    path_conf = Path(script_dir) / f"conf_backup_{info["hostname"]}"
 
-    copy(config_path, os.path.join(tmp_folder, "config.json"))
+    if path_conf.exists:
+        rmtree(path_conf)
+    path_conf.mkdir()
+
+    save_system_info(path_conf, info)
+
+    metadata_file = path_conf / "metadata.json"
+    restore_list_file = path_conf / "restore_list.json"
+
+    copy(config_path, path_conf / "config.json")
 
     with open(config_path, 'r') as f:                                 # Загружаем конфигурацию из файла
         config = json.load(f)
     config_paths = [p for p in config['config_paths']]
     ignore_patterns = [p for p in config['listignore']]
-    paths = [path for path in config_paths if os.path.exists(path)]
+    paths = [Path(path) for path in config_paths if Path(path).exists()]
 
-    host_name = save_system_info(tmp_folder)
     
     restore_list = []
     metadata = {}
     for src_path in paths:
-        replace_path = src_path.replace('/', '*')
-        dest_base = os.path.join(tmp_folder, replace_path)
-        if os.path.isdir(src_path):
+        replace_path = str(src_path).replace('/', '*')
+        dest_base = path_conf / replace_path
+        if src_path.is_dir():
             collect_restore_list(replace_path, restore_list)
-            collect_metadata(src_path, metadata)
+            collect_metadata(str(src_path), metadata)
             for dirpath, dirnames, filenames in os.walk(src_path):
                 replace_path = dirpath.replace('/', '*')
-                rel_path = os.path.relpath(dirpath, src_path)
+                rel_path = Path(os.path.relpath(dirpath, src_path))
 
-                if not rel_path == ".":
-                    rel_path = change_folder_name(rel_path.split('/'), replace_path)
+                if not str(rel_path) == ".":
+                    rel_path = change_folder_name(str(rel_path).split('/'), replace_path)
 
                     collect_restore_list(replace_path, restore_list)
-                dest_path = os.path.join(dest_base, rel_path)
+                dest_path = dest_base / rel_path
 
-                if check_listignore(dirpath, ignore_patterns):              # проверка папки на ignore_patterns
+                if check_listignore(Path(dirpath), ignore_patterns):              # проверка папки на ignore_patterns
                     continue
 
-                if not dest_path.endswith("/.") and not os.path.isdir(os.path.dirname(dest_path)):
+                if not str(dest_path).endswith("/.") and not dest_path.parent.is_dir:
                     continue
-                os.makedirs(dest_path, exist_ok=True)
+                dest_path.mkdir(exist_ok=True)
 
                 # Сохраняем метаданные для директорий
                 for dir in dirnames:
-                    src_dir = os.path.join(dirpath, dir)
+                    src_dir = Path(dirpath) / dir
                     if check_listignore(src_dir, ignore_patterns):          # проверка папки на ignore_patterns
                         continue
-                    collect_metadata(src_dir, metadata)
+                    collect_metadata(str(src_dir), metadata)
 
                 # Копируем файлы
                 for filename in filenames:
-                    src_file = os.path.join(dirpath, filename)
-                    replace_path = src_file.replace('/', '*')
+                    src_file = Path(dirpath) / filename
+                    replace_path = str(src_file).replace('/', '*')
                     if check_listignore(src_file, ignore_patterns):         # проверка файла на ignore_patterns
                         continue
 
-                    collect_metadata(src_file, metadata)
-                    dest_file = os.path.join(dest_path, replace_path)
-                    collect_restore_list(os.path.basename(dest_file), restore_list)
+                    collect_metadata(str(src_file), metadata)
+                    dest_file = dest_path / replace_path
+                    collect_restore_list(dest_file.name, restore_list)
                     copy(src_file, dest_file)
-        else:
-            if os.path.isfile(src_path):
+        elif src_path.is_file:
                 if check_listignore(src_path, ignore_patterns):             # проверка файла на ignore_patterns
                     continue
-                collect_metadata(src_path, metadata)
-                collect_restore_list(os.path.basename(dest_base), restore_list)
+                collect_restore_list(dest_base.name, restore_list)
+                collect_metadata(str(src_path), metadata)
                 copy(src_path, dest_base)
 
-
+    print(metadata)
     with open(metadata_file, 'w') as f:
         json.dump(metadata, f, indent=4)
     with open(restore_list_file, 'w') as f:
         json.dump(restore_list, f, indent=4)
 
-    olds_backups = [os.path.join(script_dir, backup) for backup in os.listdir(script_dir) if backup.endswith(".tar.gz")]
-
-    if olds_backups:
-        old_backup = max(olds_backups, key=lambda f: os.stat(f).st_mtime)
-        ignored_files = ["system_info.txt"]
-        if check_change_config(tmp_folder, old_backup, ignore=ignored_files):
-            rmtree(tmp_folder)
-            print("=== No changes in configuration files ===")
-            return 
-
-    folder_name = os.path.basename(tmp_folder)
-    backup_file_path = os.path.join(script_dir, f"{folder_name}_{host_name}.tar.gz")
-
-    with tarfile.open(backup_file_path, "w:gz") as tar:
-        tar.add(tmp_folder, arcname=".")
-    print(f"=== Backup file '{os.path.basename(backup_file_path)}' created ===")
-
-    rmtree(tmp_folder)
+    print(f"=== Backup folder '{path_conf.name}' created ===")
 
