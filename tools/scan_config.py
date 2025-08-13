@@ -22,7 +22,7 @@ def change_folder_name(arr_folder_names, replace_path):
 
 def scan_config(config_path, script_dir):
     info = get_system_info()
-    path_conf = Path(script_dir) / f"conf_backup_{info["hostname"]}"
+    path_conf = Path(script_dir) / f"conf_backup_{info['hostname']}"
 
     if path_conf.exists:
         rmtree(path_conf)
@@ -92,7 +92,6 @@ def scan_config(config_path, script_dir):
                 collect_metadata(str(src_path), metadata)
                 copy(src_path, dest_base)
 
-    print(metadata)
     with open(metadata_file, 'w') as f:
         json.dump(metadata, f, indent=4)
     with open(restore_list_file, 'w') as f:

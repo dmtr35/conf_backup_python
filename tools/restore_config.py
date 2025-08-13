@@ -61,7 +61,6 @@ def restore_config(recovery_dir, config_path, save_original):
 
 
     metadata_path = Path(recovery_dir) / "metadata.json"
-    print(metadata_path)
     with open(str(metadata_path), 'r') as f:                                 # Загружаем конфигурацию из файла
         metadata_file = json.load(f)
 
