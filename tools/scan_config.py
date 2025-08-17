@@ -24,8 +24,8 @@ def scan_config(config_path, script_dir):
     info = get_system_info()
     path_conf = Path(script_dir) / f"conf_backup_{info['hostname']}"
 
-    if path_conf.exists:
-        rmtree(path_conf)
+    if path_conf.exists():
+        rmtree(str(path_conf))
     path_conf.mkdir()
 
     save_system_info(path_conf, info)

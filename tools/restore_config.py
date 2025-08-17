@@ -1,4 +1,4 @@
-from setting.decor_permission import copy, rmtree, restor_metadata
+from setting.decor_permission import copy, restor_metadata
 import os
 from pathlib import Path
 import json

@@ -17,8 +17,8 @@ def copy(src_file, dest_file):
     shutil.copy2(src_file, dest_file)
 
 @decor_permission
-def rmtree(tmp_folder):
-    shutil.rmtree(tmp_folder)
+def rmtree(folder):
+    shutil.rmtree(folder)
 
 @decor_permission
 def restor_metadata(path, metadata_files):
