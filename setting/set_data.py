@@ -11,7 +11,7 @@ def get_system_info():
         "hostname": platform.node(),
         "kernel_version": platform.release(),
         "python_version": sys.version,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "timestamp": datetime.now().strftime("%m-%Y")
     }
 
 def save_system_info(backup_dir, info):
